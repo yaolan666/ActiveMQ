@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:amq="http://activemq.apache.org/schema/core"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <amq:connectionFactory brokerURL="tcp://192.168.120.157.61616"
+                           userName="admin" password="admin" id="amqConnectionFactory" />
+    <bean id="pooledConnectionFactory"
+           class="org.apache.activemq.pool.PooledConnectionFactoryBean">
+        <property name="connectionFactory" ref="amqConnectionFactory"></property>
+        <property name="maxConnections" value="10"></property>
+    </bean>
+    <!-- 配置池化的ConnectionFactory，为连接ActiveMQ的connectionFactory提供连接池-->
+    <bean id="connection" class="org.springframework.jms.connection.CachingConnectionFactory">
+        <property name="targetConnectionFactory" ref="pooledConnectionFactory"></property>
+        <property name="sessionCacheSize" value="3"></property>
+    </bean>
+    <!-- JmsTemPlate的配置-->
+    <bean id="template" class="org.springframework.jms.core.JmsTemplate">
+    <!-- 给定连接工厂，必须是spring创建的连接工厂-->
+        <property name="connectionFactory" ref="connectionFactory"></property>
+        <!--可选-默认目的地命名-->
+        <property name="defaultDestinationName" value="test-spring"></property>
+    </bean>
+    <context:component-scan base-package="com.bjsxt.service"></context:component-scan>
+</beans>
